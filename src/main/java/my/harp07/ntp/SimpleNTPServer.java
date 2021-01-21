@@ -80,12 +80,15 @@ public class SimpleNTPServer implements Runnable {
      */
     public void connect() throws IOException {
         if (socket == null) {
-            socket = new DatagramSocket(port);
+            //参考 https://stackoverflow.com/questions/7832393/how-to-set-reuse-address-option-for-a-datagram-socket-in-java-code
+            socket = new DatagramSocket(null); // 指定Null很重要，否则Java会自动随机选个可用端口来绑定
+            socket.setReuseAddress(true); // 绑定之前先设置Reuse
+            socket.bind(new InetSocketAddress(port)); // 然后再绑定，虽然不会报错，但导致的问题是，单播包只会发送给其中一个socket。因为这个属性是给组播报文主备的。
             // port = 0 is bound to available free port
             if (port == 0) {
                 port = socket.getLocalPort();
             }
-            System.out.println("NTP-server v.1.0.1 running on port " + port + "/UDP");
+            System.out.println("NTP-server v.1.0.2 running on port " + port + "/UDP");
         }
     }
 
